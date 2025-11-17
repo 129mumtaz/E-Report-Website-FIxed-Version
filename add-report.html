@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tambah Laporan | E-Report Sekolah</title>
+   <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/img/idn bg putih.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">E-Report Sekolah</a>
+    </div>
+  </nav>
+  <main class="container py-4">
+    <h2 class="mb-4">Tambah Laporan Baru</h2>
+    <form id="report-form">
+      <div class="mb-3">
+        <label class="form-label">Nama Laporan</label>
+        <input type="text" class="form-control" id="facilityName" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Deskripsi Masalah</label>
+        <textarea class="form-control" id="description" rows="3" required></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select id="status" class="form-select" required>
+          <option value="Baru">Baru</option>
+          <option value="Diproses">Diproses</option>
+          <option value="Selesai">Selesai</option>
+        </select>
+      </div>
+      <!-- 📸 Input Upload Gambar -->
+      <div class="mb-3">
+        <label class="form-label">Foto Fasilitas (Opsional)</label>
+        <input type="file" class="form-control" id="imageInput" accept="image/*">
+      </div>
+      <button type="submit" class="btn btn-success">Simpan</button>
+      <a href="reports.html" class="btn btn-secondary">Kembali</a>
+    </form>
+  </main>
+<script>
+    // Batas maksimum file yang diperbolehkan (misalnya: 1MB = 1048576 bytes)
+    const MAX_FILE_SIZE = 1048576; 
+    
+    document.getElementById('report-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('imageInput');
+      let base64Image = "";
+      
+      if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+
+        // --- VALIDASI UKURAN FILE DITAMBAHKAN DI SINI ---
+        if (file.size > MAX_FILE_SIZE) {
+            alert('Ukuran foto terlalu besar! Maksimal 1MB.');
+            return; // Batalkan proses submit
+        }
+        // --------------------------------------------------
+        
+        base64Image = await toBase64(file);
+      }
+      
+      const report = {
+        id: Date.now(),
+        name: document.getElementById('facilityName').value,
+        description: document.getElementById('description').value,
+        status: document.getElementById('status').value,
+        image: base64Image,
+        date: new Date().toLocaleDateString()
+      };
+      
+      const reports = JSON.parse(localStorage.getItem('reports')) || [];
+      reports.push(report);
+      
+      try {
+          localStorage.setItem('reports', JSON.stringify(reports));
+          alert('Laporan berhasil disimpan!');
+          window.location.href = 'reports.html';
+      } catch (error) {
+          // Tangani error jika localStorage penuh
+          if (error.name === 'QuotaExceededError') {
+              alert('Penyimpanan penuh! Hapus beberapa laporan lama atau coba tanpa foto.');
+          } else {
+              alert('Terjadi kesalahan saat menyimpan laporan.');
+              console.error(error);
+          }
+      }
+      
+    });
+    
+    function toBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+      });
+    }
+  </script>
+</body>
+</html>
